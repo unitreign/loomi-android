@@ -31,20 +31,9 @@ class AudioEngine(context: Context) {
     }
     private val mediaSession = MediaSession.Builder(appContext, player).build()
 
-    private val ambiencePlayers = LoomiConfig.ambienceTracks.associate { track ->
-        track.id to MediaPlayer.create(appContext, track.rawResId).apply {
-            isLooping = true
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                setAudioAttributes(
-                    AndroidAudioAttributes.Builder()
-                        .setUsage(AndroidAudioAttributes.USAGE_MEDIA)
-                        .setContentType(AndroidAudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build(),
-                )
-            }
-            setVolume(0f, 0f)
-        }
-    }.toMutableMap()
+    private val ambiencePlayers = LoomiConfig.ambienceTracks.mapNotNull { track ->
+        createAmbiencePlayer(track.rawResId)?.let { track.id to it }
+    }.toMap().toMutableMap()
 
     private var currentStationUrl: String? = null
     private var currentStationName: String? = null
@@ -64,6 +53,10 @@ class AudioEngine(context: Context) {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 onIsPlayingChanged?.invoke(isPlaying)
+                if (isPlaying) {
+                    // Ensure restored active ambience resumes when the stream starts.
+                    syncAmbiencePlaybackWithState(startActiveTracks = true)
+                }
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -168,6 +161,36 @@ class AudioEngine(context: Context) {
                 mediaPlayer.stop()
                 mediaPlayer.release()
             }
+        }
+    }
+
+    private fun createAmbiencePlayer(rawResId: Int): MediaPlayer? {
+        return runCatching {
+            MediaPlayer().apply {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    setAudioAttributes(
+                        AndroidAudioAttributes.Builder()
+                            .setUsage(AndroidAudioAttributes.USAGE_MEDIA)
+                            .setContentType(AndroidAudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build(),
+                    )
+                }
+                val afd = appContext.resources.openRawResourceFd(rawResId)
+                    ?: error("Missing raw resource for ambience track: $rawResId")
+                afd.use {
+                    setDataSource(it.fileDescriptor, it.startOffset, it.length)
+                }
+                isLooping = true
+                prepare()
+                setVolume(0f, 0f)
+            }
+        }.getOrElse {
+            runCatching {
+                MediaPlayer.create(appContext, rawResId).apply {
+                    isLooping = true
+                    setVolume(0f, 0f)
+                }
+            }.getOrNull()
         }
     }
 
