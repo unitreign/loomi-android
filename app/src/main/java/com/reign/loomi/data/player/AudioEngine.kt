@@ -26,7 +26,7 @@ class AudioEngine(context: Context) {
                 .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC)
                 .setUsage(androidx.media3.common.C.USAGE_MEDIA)
                 .build(),
-            true,
+            false,
         )
     }
     private val mediaSession = MediaSession.Builder(appContext, player).build()
@@ -63,11 +63,6 @@ class AudioEngine(context: Context) {
     init {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isPlaying) {
-                    resumeActiveAmbience()
-                } else {
-                    pauseActiveAmbience()
-                }
                 onIsPlayingChanged?.invoke(isPlaying)
             }
 
@@ -223,26 +218,6 @@ class AudioEngine(context: Context) {
             }
         }
         updateAmbienceVolumes()
-    }
-
-    private fun pauseActiveAmbience() {
-        ambienceStates.forEach { (id, state) ->
-            if (!state.active) return@forEach
-            ambiencePlayers[id]?.let { mediaPlayer ->
-                runCatching { mediaPlayer.pause() }
-            }
-        }
-    }
-
-    private fun resumeActiveAmbience() {
-        ambienceStates.forEach { (id, state) ->
-            if (!state.active) return@forEach
-            ambiencePlayers[id]?.let { mediaPlayer ->
-                runCatching {
-                    mediaPlayer.start()
-                }
-            }
-        }
     }
 
     private fun attachEqualizer(audioSessionId: Int) {

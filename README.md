@@ -84,6 +84,15 @@ If you build something on top of it, a credit back to the original project is ap
 
 ---
 
+## ☕ Support
+
+If you found this project useful:
+
+- https://buymeacoffee.com/YOURNAME
+- https://ko-fi.com/YOURNAME
+
+---
+
 ## ❤️ Credits
 
 Created by Reign

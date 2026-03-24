@@ -206,7 +206,16 @@ class LoomiViewModel(application: Application) : AndroidViewModel(application) {
         val current = states[trackId] ?: AmbienceState()
         val updated = current.copy(active = !current.active)
         states[trackId] = updated
-        _uiState.value = _uiState.value.copy(ambienceStates = states)
+        var newAmbienceBusVolume = _uiState.value.ambienceVolume
+        if (updated.active && newAmbienceBusVolume <= 0.01f) {
+            // Recover from muted ambience bus so per-track sliders are audible.
+            newAmbienceBusVolume = 0.6f
+            audioEngine.setAmbienceGlobalVolume(_uiState.value.volume, newAmbienceBusVolume)
+        }
+        _uiState.value = _uiState.value.copy(
+            ambienceStates = states,
+            ambienceVolume = newAmbienceBusVolume,
+        )
         audioEngine.setAmbienceState(trackId, updated)
         persistSnapshot()
     }
@@ -217,7 +226,16 @@ class LoomiViewModel(application: Application) : AndroidViewModel(application) {
         val current = states[trackId] ?: AmbienceState()
         val updated = current.copy(volume = clamped)
         states[trackId] = updated
-        _uiState.value = _uiState.value.copy(ambienceStates = states)
+        var newAmbienceBusVolume = _uiState.value.ambienceVolume
+        if (updated.active && clamped > 0 && newAmbienceBusVolume <= 0.01f) {
+            // Keep track slider behavior intuitive even if global ambience was set to 0 before.
+            newAmbienceBusVolume = 0.6f
+            audioEngine.setAmbienceGlobalVolume(_uiState.value.volume, newAmbienceBusVolume)
+        }
+        _uiState.value = _uiState.value.copy(
+            ambienceStates = states,
+            ambienceVolume = newAmbienceBusVolume,
+        )
         audioEngine.setAmbienceState(trackId, updated)
         persistSnapshot()
     }
