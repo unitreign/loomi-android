@@ -1165,7 +1165,7 @@ private fun AboutDialog(viewModel: LoomiViewModel) {
             RetroTextButton("CLOSE", onClick = { viewModel.closeDialog() }, highlighted = true, modifier = Modifier.weight(1f))
         },
     ) {
-        Text("LOOMI", color = colors.primary, fontFamily = LoomiFonts.Pixel, fontWeight = FontWeight.Bold)
+        Text("LOOMI v1.0", color = colors.primary, fontFamily = LoomiFonts.Pixel, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             "Your retro lofi companion for chill beats and relaxing sessions.",
@@ -1183,20 +1183,18 @@ private fun AboutDialog(viewModel: LoomiViewModel) {
 
         Spacer(modifier = Modifier.height(10.dp))
         RetroTextButton(
-            text = "WEB VERSION",
+            text = "OPEN WEB APP",
             onClick = { uriHandler.openUri("https://loomi-pied.vercel.app/") },
             highlighted = false,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(8.dp))
         RetroTextButton(
-            text = "DEV'S GITHUB",
+            text = "CREATOR SITE",
             onClick = { uriHandler.openUri("https://unitreign.github.io/") },
             highlighted = false,
             modifier = Modifier.fillMaxWidth(),
         )
-        Spacer(modifier = Modifier.height(10.dp))
-        Text("v2.0.0", color = colors.primary, fontFamily = LoomiFonts.Body)
     }
 }
 

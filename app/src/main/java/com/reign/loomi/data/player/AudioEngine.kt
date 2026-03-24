@@ -15,6 +15,7 @@ import androidx.media3.session.MediaSession
 import com.reign.loomi.data.model.AmbienceState
 import com.reign.loomi.data.model.LoomiConfig
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 class AudioEngine(context: Context) {
     private val appContext = context.applicationContext
@@ -261,10 +262,19 @@ class AudioEngine(context: Context) {
         val range = eq.bandLevelRange
         val minLevel = range[0].toInt()
         val maxLevel = range[1].toInt()
+        val maxUiDb = 12f
+        val positiveHeadroom = maxLevel.coerceAtLeast(0)
+        val negativeHeadroom = (-minLevel).coerceAtLeast(0)
 
         val bandCount = min(eq.numberOfBands.toInt(), eqValues.size)
         for (index in 0 until bandCount) {
-            val levelMb = (eqValues[index] * 100).coerceIn(minLevel, maxLevel)
+            val uiDb = eqValues[index].coerceIn(-12, 12)
+            val scaledLevelMb = if (uiDb >= 0) {
+                ((uiDb / maxUiDb) * positiveHeadroom).roundToInt()
+            } else {
+                -(((-uiDb) / maxUiDb) * negativeHeadroom).roundToInt()
+            }
+            val levelMb = scaledLevelMb.coerceIn(minLevel, maxLevel)
             runCatching {
                 eq.setBandLevel(index.toShort(), levelMb.toShort())
             }
