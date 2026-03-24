@@ -1,0 +1,8 @@
+Loomi - lo-fi radio and ambient sounds for focus, study, or just vibing. Pick a station, add some background sounds, adjust it a bit, and let it play.
+
+Features:
+- Radio streaming
+- Ambient sound mixer
+- Equalizer
+- Sleep timer
+- Themes

@@ -1,0 +1,5 @@
+Initial release of Loomi:
+- Radio streaming
+- Ambient mixer
+- Equalizer
+- Sleep timer
