@@ -34,7 +34,7 @@ This repo is public so people can inspect the code, review security, and learn f
 
 ### Run
 
-1. Open this `published-ready` folder in Android Studio.
+1. Open this `loomi` folder in Android Studio.
 2. Wait for Gradle sync to finish.
 3. Run the `app` module on an emulator or device.
 
