@@ -31,9 +31,10 @@ class AudioEngine(context: Context) {
     }
     private val mediaSession = MediaSession.Builder(appContext, player).build()
 
-    private val ambiencePlayers = LoomiConfig.ambienceTracks.mapNotNull { track ->
-        createAmbiencePlayer(track.rawResId)?.let { track.id to it }
-    }.toMap().toMutableMap()
+    private val ambienceTrackResIds = LoomiConfig.ambienceTracks.associate { track ->
+        track.id to track.rawResId
+    }
+    private val ambiencePlayers = mutableMapOf<String, MediaPlayer>()
 
     private var currentStationUrl: String? = null
     private var currentStationName: String? = null
@@ -200,7 +201,9 @@ class AudioEngine(context: Context) {
 
     private fun updateAmbienceVolumes() {
         ambienceStates.forEach { (id, state) ->
-            val player = ambiencePlayers[id] ?: return@forEach
+            val player = ambiencePlayers[id]
+                ?: if (state.active) ensureAmbiencePlayer(id) else null
+            if (player == null) return@forEach
             if (!state.active) {
                 player.setVolume(0f, 0f)
                 return@forEach
@@ -229,7 +232,9 @@ class AudioEngine(context: Context) {
     }
 
     private fun syncSingleAmbience(trackId: String, state: AmbienceState, startIfActive: Boolean) {
-        val mediaPlayer = ambiencePlayers[trackId] ?: return
+        val mediaPlayer = ambiencePlayers[trackId]
+            ?: if (state.active) ensureAmbiencePlayer(trackId) else null
+        if (mediaPlayer == null) return
         if (state.active) {
             if (startIfActive) {
                 runCatching { mediaPlayer.start() }
@@ -241,6 +246,14 @@ class AudioEngine(context: Context) {
             }
         }
         updateAmbienceVolumes()
+    }
+
+    private fun ensureAmbiencePlayer(trackId: String): MediaPlayer? {
+        ambiencePlayers[trackId]?.let { return it }
+        val rawResId = ambienceTrackResIds[trackId] ?: return null
+        val created = createAmbiencePlayer(rawResId) ?: return null
+        ambiencePlayers[trackId] = created
+        return created
     }
 
     private fun attachEqualizer(audioSessionId: Int) {
